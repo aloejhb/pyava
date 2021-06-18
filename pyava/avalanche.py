@@ -1,4 +1,6 @@
 import numpy as np
+from tqdm import tqdm
+from networkx.utils.decorators import py_random_state
 
 
 def activation_movie(parent_dict_list, box_diam, start_node=(0,0)):
@@ -33,3 +35,46 @@ def activation_cluster(parent_dict_list, box_diam, start_node=(0,0)):
         box[coords[:,0].astype(int),
             coords[:,1].astype(int)] = 1
     return box
+
+
+@py_random_state(3)
+def run_network(network_func, param, nb_repeats, seed=None):
+    cluster_list = []
+    param.update(dict(seed=seed))
+    for r in tqdm(range(nb_repeats)):
+        parent_dict_list = network_func(**param)
+        cluster_list.append(parent_dict_list)
+    return cluster_list
+
+
+flatten = lambda t: [item for sublist in t for item in sublist]
+def extract_visited_nodes(cluster):
+    """
+    Returns a list of visited nodes of a cluster.
+    Parameters
+    ----------
+    cluster: list of parent_dict (the same as parent_dict_list)
+    """
+    nodes = set(flatten([parent_dict.keys() for parent_dict in cluster]))
+    return nodes
+
+
+def compute_cluster_size(cluster):
+    """
+    Returns size of a cluster.
+    Parameters
+    ----------
+    cluster: list of parent_dict (the same as parent_dict_list)
+    """
+    vnodes = extract_visited_nodes(cluster)
+    return len(vnodes)
+
+
+def compute_cluster_dur(cluster):
+    """
+    Returns duration of a cluster.
+    Parameters
+    ----------
+    cluster: list of parent_dict (the same as parent_dict_list)
+    """
+    return len(cluster)
