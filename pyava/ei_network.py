@@ -58,7 +58,7 @@ def ei_perc_2d(p_exc, p, q, tstep, refract_period=np.inf, seed=None):
     parent_dict = dict(zip(act_nbrs, [[start_node]] * len(act_nbrs)))
     parent_dict_list = [{start_node: start_node}, parent_dict]
     if refract_period == np.inf:
-        visited_nodes = [start_node, *act_nbrs]
+        visited_nodes = set([start_node, *act_nbrs])
     for t in np.arange(1,tstep+1):
         parent_dict =  parent_dict_list[t]
         if len(parent_dict) == 0:
@@ -81,7 +81,7 @@ def ei_perc_2d(p_exc, p, q, tstep, refract_period=np.inf, seed=None):
                 next_parent_dict = update_parent_dict(next_parent_dict,
                                                       act_nbrs, node)
                 if refract_period == np.inf:
-                    visited_nodes.extend(act_nbrs)
+                    visited_nodes.update(act_nbrs)
 
         parent_dict_list.append(next_parent_dict)
     return parent_dict_list
