@@ -67,24 +67,27 @@ class EiLattice2d:
         self.node_latent_state_mat[tidx[0], tidx[1]] += signal
 
 
-@random_state(3)
-def ei_perc_2d(p_exc, p, tstep, seed=None):
+@random_state(4)
+def ei_perc_2d(p_exc, p, tstep, inhib=True, seed=None):
     radius = tstep
     lattice = EiLattice2d(radius)
     start_node = (0, 0)
     idx = lattice.get_node_idx(start_node)
     lattice.node_state_mat[idx[0], idx[1]] = 1
     lattice.node_type_mat[idx[0], idx[1]] = 1
-    nbr_list = connect_neighbours(lattice, start_node, p, seed)
+    nbr_set = connect_neighbours(lattice, start_node, p, inhib, seed)
+    nbr_set = set(nbr_set)
     for t in tqdm(range(tstep)):
-        next_nbr_list = []
-        for node in nbr_list:
+        next_nbr_set = set()
+        for node in nbr_set:
             state = update_state(lattice, node)
             if state:
                 lattice.set_node_type(node,sample_node_type(p_exc, seed))
-                nbrs = connect_neighbours(lattice, node, p, seed)
-                next_nbr_list.extend(nbrs)
-        nbr_list = next_nbr_list
+                nbrs = connect_neighbours(lattice, node, p, inhib, seed)
+                next_nbr_set.update(nbrs)
+        if len(next_nbr_set) == 0:
+            break
+        nbr_set = next_nbr_set
     return lattice
 
 
@@ -104,9 +107,14 @@ def activate_edge(p, seed):
     return edge_state
 
 
-def connect_neighbours(lattice, node, p, seed):
+@random_state(4)
+def connect_neighbours(lattice, node, p, inhib=True, seed=None):
     nbr_list = []
-    signal = lattice.get_node_type(node)
+    # TODO no signal from inhib neurons
+    if inhib:
+        signal = lattice.get_node_type(node)
+    else:
+        signal = lattice.get_node_type(node) > 0
     for nbr, e in lattice.get_neighbours(node):
         if lattice.get_node_state(nbr) == 0:
             edge_state = activate_edge(p, seed)
