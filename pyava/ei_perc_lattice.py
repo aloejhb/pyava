@@ -11,7 +11,7 @@ class EiLattice2d:
         self.node_type_mat = np.zeros((width, width))
         self.hedge_state_mat = np.zeros((width, width))
         self.vedge_state_mat = np.zeros((width, width))
-        self.act_time_mat = np.zeros((width, width))
+        self.act_time_mat = np.ones((width, width)) * np.inf
 
 
     def get_node_idx(self, node):
@@ -28,9 +28,10 @@ class EiLattice2d:
         idx = self.get_node_idx(node)
         return self.node_latent_state_mat[idx[0], idx[1]]
 
-    def set_node_state(self, node, state):
+    def set_node_state(self, node, state, tstep):
         idx = self.get_node_idx(node)
         self.node_state_mat[idx[0], idx[1]] = state
+        self.act_time_mat[idx[0], idx[1]] = tstep
 
 
     def get_node_type(self, node):
@@ -68,20 +69,20 @@ class EiLattice2d:
 
 
 @random_state(4)
-def ei_perc_2d(p_exc, p, tstep, inhib=True, seed=None):
+def ei_perc_2d(p, p_exc, tstep, inhib=True, seed=None):
     radius = tstep
     lattice = EiLattice2d(radius)
     start_node = (0, 0)
+    lattice.set_node_state(start_node, 1, 0)
     idx = lattice.get_node_idx(start_node)
-    lattice.node_state_mat[idx[0], idx[1]] = 1
     lattice.node_type_mat[idx[0], idx[1]] = 1
     nbr_set = connect_neighbours(lattice, start_node, p, inhib, seed)
     nbr_set = set(nbr_set)
-    for t in tqdm(range(tstep)):
+    for t in np.arange(1,tstep+1):
         next_nbr_set = set()
         for node in nbr_set:
-            state = update_state(lattice, node)
-            if state:
+            state = update_state(lattice, node, t)
+            if state and t < tstep:
                 lattice.set_node_type(node,sample_node_type(p_exc, seed))
                 nbrs = connect_neighbours(lattice, node, p, inhib, seed)
                 next_nbr_set.update(nbrs)
@@ -110,7 +111,6 @@ def activate_edge(p, seed):
 @random_state(4)
 def connect_neighbours(lattice, node, p, inhib=True, seed=None):
     nbr_list = []
-    # TODO no signal from inhib neurons
     if inhib:
         signal = lattice.get_node_type(node)
     else:
@@ -125,8 +125,8 @@ def connect_neighbours(lattice, node, p, inhib=True, seed=None):
     return nbr_list
 
 
-def update_state(lattice, node, thresh=1):
+def update_state(lattice, node, tstep, thresh=1):
     state = lattice.get_node_latent_state(node) >= thresh
     if state:
-        lattice.set_node_state(node, state)
+        lattice.set_node_state(node, state, tstep)
     return state
