@@ -2,3 +2,4 @@ __pycache__/
 *.npy
 notebooks/.ipynb_checkpoints/
 results/
+figures/
