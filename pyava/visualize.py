@@ -46,14 +46,15 @@ def plot_cluster_shape_grid(indir, repeat_nb, gstep=[1,1], grange=[(0,1),(0,1)],
             print((j,k))
             subdir = os.path.join(indir, 'j_{:03d}_k_{:03d}'.format(j, k))
             lat = read_lattice(os.path.join(subdir, '{:03d}.pkl'.format(repeat_nb)))
-            ax = axs[j_idx][k_idx]
-            ax.xaxis.set_visible(False)
-            ax.tick_params(axis='y', left=False, labelleft=False)
+            ax = axs[k_idx][j_idx]
             plot_cluster_shape(ax, lat, t_stop)
+            ax.tick_params(axis='both', which='both',
+                           bottom=False, labeltop=False,
+                           top=False, left=False, labelleft=False)
             if j_idx == 0:
-                ax.set_title('{:.2f}'.format(mesh_list[1][k]))
-            if k_idx == 0:
-                ax.set_ylabel('{:.2f}'.format(mesh_list[0][j]))
+                ax.set_ylabel('{:.2f}'.format(mesh_list[1][k]))
+            if k_idx == len(m1)-1:
+                ax.set_xlabel('{:.2f}'.format(mesh_list[0][j]))
             #     ax.tick_params(axis='y', labelsize=5)
             # else:
             #     ax.tick_params(axis='y', left=False)
@@ -63,6 +64,6 @@ def plot_cluster_shape_grid(indir, repeat_nb, gstep=[1,1], grange=[(0,1),(0,1)],
             #                    labelbottom=True, labelsize=5)
 
     par_list = scan_par['par_list']
-    fig.suptitle(par_list[1])
-    fig.supylabel(par_list[0])
+    fig.supxlabel(par_list[0])
+    fig.supylabel(par_list[1])
     return fig
