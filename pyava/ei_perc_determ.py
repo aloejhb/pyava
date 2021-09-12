@@ -2,13 +2,15 @@ import numpy as np
 
 
 def perc_motif_2step(edge_vector):
+    results_list = []
     start_node = 0
     nbr_list = get_neighbours(start_node, edge_vector)
     nb_nbr = len(nbr_list)
     if nb_nbr == 0:
         state_bvector = 1 # only the starting node is activated
         results = dict(state_bvector=state_bvector)
-        return results
+        results_list.append(results)
+        return results_list
     else:
         # Loop over assignments of node types to each neighbour
         for type_vector in range(2**nb_nbr):
@@ -17,7 +19,7 @@ def perc_motif_2step(edge_vector):
                 results = dict(state_bvector=state_bvector,
                                nbr_list = nbr_list,
                                type_vector = type_vector)
-                return results
+                results_list.append(results)
             else:
                 state_vector = np.zeros(13, dtype=np.bool_)
                 latent_vector = np.zeros(13, dtype=np.int)
@@ -27,7 +29,7 @@ def perc_motif_2step(edge_vector):
                     nbr_type = get_node_type(idx, type_vector)# type of this nbr
                     state_vector[nbr] = 1
                     # each neighbour sends signal to its connected nodes
-                    next_nbr_list = get_neighbours(nbr)
+                    next_nbr_list = get_neighbours(nbr, edge_vector)
                     next_nbr_set.update(next_nbr_list)
                     for nnbr in next_nbr_list:
                         latent_vector[nnbr] += (nbr_type - 0.5) * 2
@@ -47,18 +49,18 @@ def perc_motif_2step(edge_vector):
                                        active_nnbr = active_nnbr,
                                        type_vector = type_vector,
                                        next_type_vector = next_type_vector)
-                        return results
+                        results_list.append(results)
+        return results_list
 
 
 def convert_vector_to_bnum(vector):
-    # TODO
-    pass
+    return vector.dot(1 << np.arange(vector.size)[::-1])
 
 def convert_bnum_to_vector(bnum):
     pass
 
 def get_nth_digit(n, bnum):
-    return (bnum & (1 << bnum)) >> bnum
+    return (bnum & (1 << n)) >> n
 
 def get_node_type(node, type_vector):
     return get_nth_digit(node, type_vector)
