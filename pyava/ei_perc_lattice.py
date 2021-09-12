@@ -42,6 +42,13 @@ class EiLattice2d:
         idx = self.get_node_idx(node)
         self.node_type_mat[idx[0], idx[1]] = ntype
 
+    def get_edge_state(self, edge):
+        idx = self.get_node_idx(edge[0])
+        if edge[1] == 0:
+            state = self.hedge_state_mat[idx[0], idx[1]]
+        else:
+            state = self.vedge_state_mat[idx[0], idx[1]]
+        return state
 
     def set_edge_state(self, edge, state):
         idx = self.get_node_idx(edge[0])
