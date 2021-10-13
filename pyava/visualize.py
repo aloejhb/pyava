@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from .parameter_scan_lattice import load_scan_par
@@ -75,3 +76,31 @@ def activation_movie(lat, tmax=None):
     for t in range(tmax):
         movie[t,:,:] = np.multiply(lat.node_type_mat, lat.act_time_mat<=t+1)
     return movie
+
+
+def plot_scan_mat(mat, scan_par, title=''):
+    par_list = scan_par['par_list']
+    mesh_list = np.array(scan_par['mesh_list'])
+    plt.matshow(mat)
+    plt.ylabel(par_list[1])
+    plt.xlabel(par_list[0])
+    ax = plt.gca()
+    ax.tick_params(top=False, bottom=True, labeltop=False, labelbottom=True)
+    jump = 5
+    ax.set_xticks(np.arange(mat.shape[1])[::jump])
+    ax.set_xticklabels(mesh_list[0][::jump])
+    ax.set_yticks(np.arange(mat.shape[0])[::jump])
+    ax.set_yticklabels(mesh_list[1][::jump])
+    plt.colorbar()
+    plt.suptitle(title)
+
+
+def num2str(number_list):
+    return map(lambda x: '{:.2f}'.format(x), number_list)
+def plot_mat_1d(mat, scan_par, title=None):
+    df = pd.DataFrame(mat.transpose(), columns=num2str(scan_par['mesh_list'][0]), index=num2str(scan_par['mesh_list'][1]))
+    df2 = df[df.columns[::2]]
+    df2.plot()
+    plt.xlabel(scan_par['par_list'][0])
+    if title:
+        plt.suptitle(title)
