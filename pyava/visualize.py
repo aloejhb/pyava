@@ -10,13 +10,12 @@ def show_movie(movie):
     fig, ax = plt.subplots()
     ims = []
     for i in range(movie.shape[0]):
-        im = plt.imshow(movie[i, :, :], animated=True)
+        im = ax.matshow(movie[i, :, :], cmap='RdYlBu', animated=True)
+        im.set_clim([-1, 1])
         ims.append([im])
     ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=1000)
     plt.close(fig)
     return ani
-
-
 
 
 def plot_cluster_shape(ax, lat, t_stop):
@@ -67,3 +66,12 @@ def plot_cluster_shape_grid(indir, repeat_nb, gstep=[1,1], grange=[(0,1),(0,1)],
     fig.supxlabel(par_list[0])
     fig.supylabel(par_list[1])
     return fig
+
+
+def activation_movie(lat, tmax=None):
+    if tmax is None:
+        tmax = lat.act_time_mat[lat.act_time_mat<1e308].max().astype('int')
+    movie = np.zeros((tmax, lat.act_time_mat.shape[0], lat.act_time_mat.shape[1]))
+    for t in range(tmax):
+        movie[t,:,:] = np.multiply(lat.node_type_mat, lat.act_time_mat<=t+1)
+    return movie
